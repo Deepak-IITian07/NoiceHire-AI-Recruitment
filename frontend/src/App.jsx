@@ -1,40 +1,38 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios'
 
-function App() {
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/test/')
-      .then(response => setData(response.data))
-      .catch(error => setError(error.message))
-  }, [])
+import DashboardLayout from './layouts/DashboardLayout'
+import Dashboard from './pages/Dashboard'
+import JobRankings from './pages/JobRankings'
+import JobProfiles from './pages/JobProfiles'
+import Candidates from './pages/Candidates'
+import ResumeUpload from './pages/ResumeUpload'
+import CandidateDetails from './pages/CandidateDetails'
+import Login from './pages/Login'
 
-  return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-6">
-        Resume Screening System
-      </h1>
-
-      {data && (
-        <div className="text-center">
-          <p className="text-green-400 font-bold">
-            Backend Connected!
-          </p>
-          <p className="mt-2">{data.message}</p>
-        </div>
-      )}
-
-      {error && (
-        <p className="text-red-400">
-          Connection Error: {error}
-        </p>
-      )}
-
-      {!data && !error && <p>Connecting to backend...</p>}
-    </div>
-  )
+function ProtectedRoute() {
+  return localStorage.getItem('admin_token')
+    ? <Outlet />
+    : <Navigate to="/login" replace />
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/jobs" element={<JobProfiles />} />
+            <Route path="/jobs/:jobId" element={<JobRankings />} />
+            <Route path="/candidates" element={<Candidates />} />
+            <Route path="/candidates/:id" element={<CandidateDetails />} />
+            <Route path="/upload" element={<ResumeUpload />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
+}
